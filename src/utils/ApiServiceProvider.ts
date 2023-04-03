@@ -18,10 +18,9 @@ export default abstract class ApiServiceProvider {
     TParam extends ITitleLookupProps,
     TReturn extends IMovie
   >(options: TParam): Promise<TReturn> {
-    const request = await this._httpClient.get<TReturn>(
-      `${this._urlEncode(options)}`
-    );
-    return request.data;
+    const request = await this._httpClient.get(`${this._urlEncode(options)}`);
+    if (request.data.Response === "False") throw new Error(Constants.BadSearch);
+    return request.data as TReturn;
   }
   public static TitleLookup(options: ITitleLookupProps): Promise<IMovie> {
     return this._getRequest<ITitleLookupProps, IMovie>(options);

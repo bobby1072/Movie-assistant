@@ -24,6 +24,7 @@ export default interface IMovie {
   Production: string;
   Website: string;
   Response: string;
+  Error?: string;
 }
 
 export interface IRating {
