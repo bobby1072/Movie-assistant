@@ -24,6 +24,7 @@ interface ISearchFilmProps {
   setStopMedia: (data: boolean) => void;
 }
 export default function SearchFilmForm(props: ISearchFilmProps) {
+  const { setError, setFilm, setLoading, setStopMedia, movie } = props;
   const [stopper, setStopper] = useState<boolean>(false);
   const [idSearch, setIdSearch] = useState<boolean>(false);
   const { register, watch, reset, handleSubmit } = useForm<ILookupProps>({
@@ -35,26 +36,26 @@ export default function SearchFilmForm(props: ISearchFilmProps) {
       await ApiServiceProvider.TitleLookup(body),
     {
       onSuccess: (data) => {
-        props.setError(undefined);
-        props.setFilm(data);
+        setError(undefined);
+        setFilm(data);
       },
       onError: (error) => {
-        props.setFilm(undefined);
-        props.setError(error);
+        setFilm(undefined);
+        setError(error);
       },
     }
   );
   useEffect(() => {
     if (selectedVals) setStopper(true);
-    props.setLoading(isLoading);
-  }, [isLoading, selectedVals, props]);
+    setLoading(isLoading);
+  }, [isLoading, selectedVals, setLoading]);
   const clearAll = () => {
     reset(
       idSearch ? { i: "", year: "", type: "" } : { t: "", year: "", type: "" }
     );
-    props.setError(undefined);
-    props.setStopMedia(false);
-    props.setFilm(undefined);
+    setError(undefined);
+    setStopMedia(false);
+    setFilm(undefined);
     setStopper(false);
   };
   return (
@@ -62,20 +63,34 @@ export default function SearchFilmForm(props: ISearchFilmProps) {
       {stopper && (
         <form
           onSubmit={handleSubmit((data) => {
-            props.setStopMedia(true);
+            setStopMedia(true);
             mutate({ body: data });
           })}
         >
           <Grid item>
-            <Switch
-              inputProps={{ "aria-label": "Toggle" }}
-              checked={idSearch}
-              onClick={() => {
-                if (idSearch) setIdSearch(false);
-                else setIdSearch(true);
-                clearAll();
-              }}
-            />
+            <Grid
+              container
+              direction="row"
+              justifyContent="center"
+              alignItems="center"
+            >
+              <Grid item>
+                <Switch
+                  inputProps={{ "aria-label": "Toggle" }}
+                  checked={idSearch}
+                  onClick={() => {
+                    if (idSearch) setIdSearch(false);
+                    else setIdSearch(true);
+                    clearAll();
+                  }}
+                />
+              </Grid>
+              <Grid item>
+                <Typography variant="subtitle2" sx={{ fontSize: 13 }}>
+                  Imdb id
+                </Typography>
+              </Grid>
+            </Grid>
           </Grid>
           <Grid item sx={{ mb: 2 }}>
             {idSearch ? (
@@ -118,7 +133,7 @@ export default function SearchFilmForm(props: ISearchFilmProps) {
               variant="outlined"
               disabled={Boolean(
                 isLoading ||
-                  (props.movie
+                  (movie
                     ? false
                     : true &&
                       !Object.values(selectedVals).find((value) => value))
