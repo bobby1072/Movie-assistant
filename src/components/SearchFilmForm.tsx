@@ -13,30 +13,29 @@ import ITitleLookupProps from "../common/TitleLookupOptions";
 import ApiServiceProvider from "../utils/ApiServiceProvider";
 import { useMutation } from "react-query";
 import IMovie from "../common/TitleLookupResponse";
+import Constants from "../common/Constants";
 interface ISearchFilmProps {
   setFilm: (data: IMovie) => void;
   setError: (data: any) => void;
+  setLoading: (data: boolean) => void;
 }
 export default function SearchFilmForm(props: ISearchFilmProps) {
+  const [stopper, setStopper] = useState<boolean>(false);
+  const defVals: { t: ""; year: ""; type: "" } = { t: "", year: "", type: "" };
   const { register, watch, reset, handleSubmit } = useForm<ITitleLookupProps>({
-    defaultValues: { t: "" },
+    defaultValues: defVals,
   });
   const selectedVals = watch();
-  const [stopper, setStopper] = useState<boolean>(false);
   const { data, error, isLoading, mutate } = useMutation(
     async ({ body }: { body: ITitleLookupProps }) =>
       await ApiServiceProvider.TitleLookup(body)
   );
   useEffect(() => {
-    if (data) props.setFilm(data);
-  }, [data, props]);
-  useEffect(() => {
-    setStopper(true);
-  }, [selectedVals]);
-  useEffect(() => {
     if (error) props.setError(error);
-  }, [error, props]);
-  const mediaTypes = ["Movie", "Episode", "Game", "Series"];
+    if (data) props.setFilm(data);
+    if (selectedVals) setStopper(true);
+    props.setLoading(isLoading);
+  }, [error, data, isLoading, selectedVals, props]);
   return (
     <div>
       {stopper && (
@@ -58,7 +57,7 @@ export default function SearchFilmForm(props: ISearchFilmProps) {
                 type="submit"
                 renderValue={(value: string) => <small>{value}</small>}
               >
-                {mediaTypes.map((x) => (
+                {Constants.mediaTypes.map((x) => (
                   <MenuItem value={x.toLowerCase()}>
                     <p>{x}</p>
                   </MenuItem>
@@ -69,6 +68,7 @@ export default function SearchFilmForm(props: ISearchFilmProps) {
           </Grid>
           <Grid item>
             <Button
+              color="error"
               variant="outlined"
               disabled={
                 isLoading ||
@@ -78,7 +78,7 @@ export default function SearchFilmForm(props: ISearchFilmProps) {
               }
               sx={{ marginRight: 1 }}
               onClick={() => {
-                reset({ t: "" });
+                reset(defVals);
                 setStopper(false);
               }}
             >
