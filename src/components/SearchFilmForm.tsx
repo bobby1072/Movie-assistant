@@ -2,6 +2,7 @@ import {
   Button,
   FormControl,
   Grid,
+  Typography,
   InputLabel,
   MenuItem,
   Select,
@@ -15,9 +16,11 @@ import { useMutation } from "react-query";
 import IMovie from "../common/TitleLookupResponse";
 import Constants from "../common/Constants";
 interface ISearchFilmProps {
-  setFilm: (data: IMovie) => void;
+  selectedFilm?: IMovie;
+  setFilm: (data?: IMovie) => void;
   setError: (data: any) => void;
   setLoading: (data: boolean) => void;
+  setStopMedia: (data: boolean) => void;
 }
 export default function SearchFilmForm(props: ISearchFilmProps) {
   const [stopper, setStopper] = useState<boolean>(false);
@@ -41,6 +44,7 @@ export default function SearchFilmForm(props: ISearchFilmProps) {
       {stopper && (
         <form
           onSubmit={handleSubmit((data) => {
+            props.setStopMedia(true);
             mutate({ body: data });
           })}
         >
@@ -55,11 +59,18 @@ export default function SearchFilmForm(props: ISearchFilmProps) {
                 inputProps={register("type")}
                 label="Type"
                 type="submit"
-                renderValue={(value: string) => <small>{value}</small>}
+                renderValue={(value: string) => (
+                  <Typography variant="subtitle2" sx={{ fontSize: 17 }}>
+                    {value[0].toUpperCase()}
+                    {value.slice(1, value.length)}
+                  </Typography>
+                )}
               >
                 {Constants.mediaTypes.map((x) => (
                   <MenuItem value={x.toLowerCase()}>
-                    <p>{x}</p>
+                    <Typography variant="subtitle2" sx={{ fontSize: 17 }}>
+                      {x}
+                    </Typography>
                   </MenuItem>
                 ))}
               </Select>
@@ -79,6 +90,8 @@ export default function SearchFilmForm(props: ISearchFilmProps) {
               sx={{ marginRight: 1 }}
               onClick={() => {
                 reset(defVals);
+                props.setStopMedia(false);
+                props.setFilm(undefined);
                 setStopper(false);
               }}
             >
