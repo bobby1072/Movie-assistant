@@ -1,12 +1,12 @@
-import axios from "axios";
+import axios, { AxiosInstance } from "axios";
 import Constants from "../common/Constants";
-import ITitleLookupProps from "../common/TitleLookupOptions";
 import IMovie from "../common/TitleLookupResponse";
+import ILookupProps from "../common/TitleLookupOptions";
 export default abstract class ApiServiceProvider {
-  private static _httpClient = axios.create({
+  private static _httpClient: AxiosInstance = axios.create({
     baseURL: `http://www.omdbapi.com`,
   });
-  private static _urlEncode(options: ITitleLookupProps) {
+  private static _urlEncode(options: ILookupProps): string {
     return Object.entries(options).reduce((acc, [key, value], index) => {
       const encodedKey = encodeURIComponent(key);
       const encodedValue = encodeURIComponent(value.toString());
@@ -19,7 +19,7 @@ export default abstract class ApiServiceProvider {
     }, "");
   }
   private static async _getRequest<
-    TParam extends ITitleLookupProps,
+    TParam extends ILookupProps,
     TReturn extends IMovie
   >(options: TParam): Promise<TReturn> {
     const request = await this._httpClient.get(
@@ -28,7 +28,7 @@ export default abstract class ApiServiceProvider {
     if (request.data.Response === "False") throw new Error(Constants.BadSearch);
     return request.data as TReturn;
   }
-  public static TitleLookup(options: ITitleLookupProps): Promise<IMovie> {
-    return this._getRequest<ITitleLookupProps, IMovie>(options);
+  public static TitleLookup(options: ILookupProps): Promise<IMovie> {
+    return this._getRequest<ILookupProps, IMovie>(options);
   }
 }

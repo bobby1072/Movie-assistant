@@ -7,16 +7,17 @@ import {
   MenuItem,
   Select,
   TextField,
+  Switch,
 } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import ITitleLookupProps from "../common/TitleLookupOptions";
 import ApiServiceProvider from "../utils/ApiServiceProvider";
 import { useMutation } from "react-query";
 import IMovie from "../common/TitleLookupResponse";
 import Constants from "../common/Constants";
+import ILookupProps from "../common/TitleLookupOptions";
 interface ISearchFilmProps {
-  selectedFilm?: IMovie;
+  movie?: IMovie;
   setFilm: (data?: IMovie) => void;
   setError: (data: any) => void;
   setLoading: (data: boolean) => void;
@@ -24,21 +25,38 @@ interface ISearchFilmProps {
 }
 export default function SearchFilmForm(props: ISearchFilmProps) {
   const [stopper, setStopper] = useState<boolean>(false);
-  const defVals: { t: ""; year: ""; type: "" } = { t: "", year: "", type: "" };
-  const { register, watch, reset, handleSubmit } = useForm<ITitleLookupProps>({
-    defaultValues: defVals,
+  const [idSearch, setIdSearch] = useState<boolean>(false);
+  const { register, watch, reset, handleSubmit } = useForm<ILookupProps>({
+    defaultValues: { t: "", year: "", type: "" },
   });
   const selectedVals = watch();
-  const { data, error, isLoading, mutate } = useMutation(
-    async ({ body }: { body: ITitleLookupProps }) =>
-      await ApiServiceProvider.TitleLookup(body)
+  const { isLoading, mutate } = useMutation(
+    async ({ body }: { body: ILookupProps }) =>
+      await ApiServiceProvider.TitleLookup(body),
+    {
+      onSuccess: (data) => {
+        props.setError(undefined);
+        props.setFilm(data);
+      },
+      onError: (error) => {
+        props.setFilm(undefined);
+        props.setError(error);
+      },
+    }
   );
   useEffect(() => {
-    if (error) props.setError(error);
-    if (data) props.setFilm(data);
     if (selectedVals) setStopper(true);
     props.setLoading(isLoading);
-  }, [error, data, isLoading, selectedVals, props]);
+  }, [isLoading, selectedVals, props]);
+  const clearAll = () => {
+    reset(
+      idSearch ? { i: "", year: "", type: "" } : { t: "", year: "", type: "" }
+    );
+    props.setError(undefined);
+    props.setStopMedia(false);
+    props.setFilm(undefined);
+    setStopper(false);
+  };
   return (
     <div>
       {stopper && (
@@ -48,11 +66,29 @@ export default function SearchFilmForm(props: ISearchFilmProps) {
             mutate({ body: data });
           })}
         >
-          <Grid item sx={{ mb: 2 }}>
-            <TextField
-              label={"Title"}
-              inputProps={register("t", { required: true })}
+          <Grid item>
+            <Switch
+              inputProps={{ "aria-label": "Toggle" }}
+              checked={idSearch}
+              onClick={() => {
+                if (idSearch) setIdSearch(false);
+                else setIdSearch(true);
+                clearAll();
+              }}
             />
+          </Grid>
+          <Grid item sx={{ mb: 2 }}>
+            {idSearch ? (
+              <TextField
+                label={"Imdb id"}
+                inputProps={register("i", { required: true })}
+              />
+            ) : (
+              <TextField
+                label={"Title"}
+                inputProps={register("t", { required: true })}
+              />
+            )}
             <FormControl sx={{ width: "20%", marginLeft: 2, marginRight: 2 }}>
               <InputLabel id="demo-simple-select-label">Type</InputLabel>
               <Select
@@ -60,7 +96,7 @@ export default function SearchFilmForm(props: ISearchFilmProps) {
                 label="Type"
                 type="submit"
                 renderValue={(value: string) => (
-                  <Typography variant="subtitle2" sx={{ fontSize: 17 }}>
+                  <Typography variant="subtitle2" sx={{ fontSize: 15 }}>
                     {value[0].toUpperCase()}
                     {value.slice(1, value.length)}
                   </Typography>
@@ -68,7 +104,7 @@ export default function SearchFilmForm(props: ISearchFilmProps) {
               >
                 {Constants.mediaTypes.map((x) => (
                   <MenuItem value={x.toLowerCase()}>
-                    <Typography variant="subtitle2" sx={{ fontSize: 17 }}>
+                    <Typography variant="subtitle2" sx={{ fontSize: 15 }}>
                       {x}
                     </Typography>
                   </MenuItem>
@@ -79,21 +115,16 @@ export default function SearchFilmForm(props: ISearchFilmProps) {
           </Grid>
           <Grid item>
             <Button
-              color="error"
               variant="outlined"
-              disabled={
+              disabled={Boolean(
                 isLoading ||
-                !Object.entries(selectedVals).find(
-                  ([key, value]) => key === "t" && value
-                )
-              }
+                  (props.movie
+                    ? false
+                    : true &&
+                      !Object.values(selectedVals).find((value) => value))
+              )}
               sx={{ marginRight: 1 }}
-              onClick={() => {
-                reset(defVals);
-                props.setStopMedia(false);
-                props.setFilm(undefined);
-                setStopper(false);
-              }}
+              onClick={clearAll}
             >
               Clear
             </Button>
@@ -104,7 +135,7 @@ export default function SearchFilmForm(props: ISearchFilmProps) {
               disabled={
                 isLoading ||
                 !Object.entries(selectedVals).find(
-                  ([key, value]) => key === "t" && value
+                  ([key, value]) => (key === "t" || key === "i") && value
                 )
               }
             >
