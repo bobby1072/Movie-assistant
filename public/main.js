@@ -17,6 +17,7 @@ app.on("activate", function () {
 });
 function createWindow() {
   mainWindow = new BrowserWindow({
+    icon: __dirname + "/../src/images/logo.jpg",
     width: 1024,
     height: 1024,
     title: "movie-assistant",
