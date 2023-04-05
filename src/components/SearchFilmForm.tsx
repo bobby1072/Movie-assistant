@@ -24,11 +24,12 @@ interface ISearchFilmProps {
   setStopMedia: (data: boolean) => void;
 }
 export default function SearchFilmForm(props: ISearchFilmProps) {
+  const defVals: ILookupProps = { t: "", year: "", type: "", i: "" };
   const { setError, setFilm, setLoading, setStopMedia, movie } = props;
   const [stopper, setStopper] = useState<boolean>(false);
   const [idSearch, setIdSearch] = useState<boolean>(false);
   const { register, watch, reset, handleSubmit } = useForm<ILookupProps>({
-    defaultValues: { t: "", year: "", type: "" },
+    defaultValues: defVals,
   });
   const selectedVals = watch();
   const { isLoading, mutate } = useMutation(
@@ -46,13 +47,13 @@ export default function SearchFilmForm(props: ISearchFilmProps) {
     }
   );
   useEffect(() => {
-    if (selectedVals) setStopper(true);
+    if (selectedVals) {
+      setStopper(true);
+    }
     setLoading(isLoading);
   }, [isLoading, selectedVals, setLoading]);
   const clearAll = () => {
-    reset(
-      idSearch ? { i: "", year: "", type: "" } : { t: "", year: "", type: "" }
-    );
+    reset(defVals);
     setError(undefined);
     setStopMedia(false);
     setFilm(undefined);
