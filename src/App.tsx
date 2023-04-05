@@ -1,5 +1,5 @@
 import "./App.css";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { Routes, Route, HashRouter } from "react-router-dom";
 import { useEffect } from "react";
 import MainPage from "./pages/MainPage";
 import { QueryClient, QueryClientProvider } from "react-query";
@@ -13,11 +13,11 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider theme={movieAssistantTheme}>
-        <BrowserRouter>
+        <HashRouter>
           <Routes>
             <Route element={<MainPage />} path="/" />
           </Routes>
-        </BrowserRouter>
+        </HashRouter>
       </ThemeProvider>
     </QueryClientProvider>
   );
